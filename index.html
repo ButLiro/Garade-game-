@@ -14,8 +14,8 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #121214;
-            color: #e1e1e6;
+            background-color: #0f0f13;
+            color: #f1f1f6;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
             flex-direction: column;
@@ -31,120 +31,118 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
         h1 {
-            font-size: 20px;
+            font-size: 22px;
             text-align: center;
-            margin: 4px 0 12px 0;
-            color: #f39c12;
+            margin: 6px 0 4px 0;
+            color: #ff9f43;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
         .panel {
-            background: #1e1e24;
-            border-radius: 12px;
-            padding: 14px;
-            border: 1px solid #2d2d38;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background: #1b1b22;
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid #2c2c38;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 12px;
         }
         .stat-box {
-            background: #282833;
-            padding: 10px;
-            border-radius: 8px;
+            background: #23232d;
+            padding: 12px;
+            border-radius: 10px;
             text-align: center;
+            border: 1px solid #323242;
         }
         .stat-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            color: #00cec9;
+            color: #00d2d3;
         }
         .stat-label {
             font-size: 11px;
-            color: #a4b0be;
-            margin-top: 2px;
+            color: #88889d;
+            margin-top: 4px;
+            text-transform: uppercase;
         }
         .main-button {
             width: 100%;
-            padding: 18px;
-            background: #f1c40f;
-            color: #121214;
+            padding: 20px;
+            background: #ff9f43;
+            color: #1a1a21;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: 900;
             cursor: pointer;
             text-transform: uppercase;
-            box-shadow: 0 4px 0 #d4ac0d;
+            box-shadow: 0 5px 0 #d35400;
             transition: transform 0.05s, box-shadow 0.05s;
-            margin-top: 8px;
         }
         .main-button:active, .main-button.pressed {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #d4ac0d;
-            background: #f39c12;
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #d35400;
+            background: #e67e22;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #88889d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .upgrades-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 250px;
+            max-height: 280px;
             overflow-y: auto;
-            margin-top: 4px;
         }
         .upgrade-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #252530;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid #333342;
+            background: #23232d;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #323242;
         }
         .upgrade-info {
             display: flex;
             flex-direction: column;
         }
         .upgrade-name {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
+            color: #ffffff;
         }
         .upgrade-cost {
-            font-size: 11px;
-            color: #fdcb6e;
-            margin-top: 2px;
+            font-size: 12px;
+            color: #ff9f43;
+            margin-top: 3px;
         }
         .buy-btn {
-            background: #00b894;
-            color: white;
+            background: #2ed573;
+            color: #ffffff;
             border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
         }
         .buy-btn:disabled {
-            background: #636e72;
-            opacity: 0.6;
+            background: #2c2c38;
+            color: #57576b;
             cursor: not-allowed;
-        }
-        .log-box {
-            background: #151518;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 11px;
-            height: 60px;
-            overflow-y: auto;
-            color: #dfe6e9;
-            border: 1px solid #22222b;
         }
     </style>
 </head>
@@ -157,7 +155,7 @@
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-value" id="money">0</div>
-                <div class="stat-label">Скрап ($)</div>
+                <div class="stat-label">Детали ($)</div>
             </div>
             <div class="stat-box">
                 <div class="stat-value" id="rps">0</div>
@@ -169,12 +167,8 @@
     </div>
 
     <div class="panel">
-        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #a4b0be;">ИНСТРУМЕНТЫ И АПГРЕЙДЫ</div>
+        <div class="section-title">Апгрейды гаража</div>
         <div class="upgrades-list" id="upgradesList"></div>
-    </div>
-
-    <div class="panel" style="padding: 10px;">
-        <div class="log-box" id="logBox">Гараж открыт. Ключи на столе. Погнали...</div>
     </div>
 </div>
 
@@ -184,7 +178,7 @@
         clickPower: 1,
         perSec: 0,
         upgrades: [
-            { id: 'wrench', name: 'Набор ключей ГОСТ', cost: 15, rps: 1, count: 0 },
+            { id: 'wrench', name: 'Набор ключей', cost: 15, rps: 1, count: 0 },
             { id: 'compressor', name: 'Компрессор', cost: 100, rps: 6, count: 0 },
             { id: 'f80', name: 'Мотор F80', cost: 600, rps: 35, count: 0 },
             { id: 'peltier', name: 'Пельтье-кулер', cost: 2500, rps: 150, count: 0 }
@@ -195,12 +189,6 @@
     const rpsEl = document.getElementById('rps');
     const workBtn = document.getElementById('workBtn');
     const upgradesListEl = document.getElementById('upgradesList');
-    const logBox = document.getElementById('logBox');
-
-    function log(text) {
-        logBox.innerHTML += `<br>` + text;
-        logBox.scrollTop = logBox.scrollHeight;
-    }
 
     function renderUpgrades() {
         upgradesListEl.innerHTML = '';
@@ -210,7 +198,7 @@
             item.innerHTML = `
                 <div class="upgrade-info">
                     <span class="upgrade-name">${upg.name} (${upg.count})</span>
-                    <span class="upgrade-cost">${upg.cost} скрапа</span>
+                    <span class="upgrade-cost">${upg.cost} деталей</span>
                 </div>
                 <button class="buy-btn" ${state.money < upg.cost ? 'disabled' : ''} onclick="buyUpgrade('${upg.id}')">Купить</button>
             `;
@@ -229,7 +217,6 @@
         updateUI();
     }
 
-    // Жесткая привязка без тупников на смартфонах
     workBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         doWork();
@@ -255,9 +242,8 @@
         if (state.money >= upg.cost) {
             state.money -= upg.cost;
             upg.count++;
-            upg.cost = Math.floor(upg.cost * 1.15);
             state.perSec += upg.rps;
-            log(`Куплено: ${upg.name}`);
+            upg.cost = Math.floor(upg.cost * 1.35);
             updateUI();
         }
     };
