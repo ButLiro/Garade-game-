@@ -37,7 +37,7 @@
             font-size: 20px;
             text-align: center;
             margin: 4px 0 12px 0;
-            color: #00b894;
+            color: #f39c12;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -45,7 +45,7 @@
             background: #1e1e24;
             border-radius: 12px;
             padding: 14px;
-            border: 1px: solid #2d2d38;
+            border: 1px solid #2d2d38;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .stats-grid {
@@ -72,23 +72,23 @@
         }
         .main-button {
             width: 100%;
-            padding: 16px;
-            background: #0984e3;
-            color: white;
+            padding: 18px;
+            background: #f1c40f;
+            color: #121214;
             border: none;
             border-radius: 10px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 900;
             cursor: pointer;
             text-transform: uppercase;
-            box-shadow: 0 4px 0 #074b83;
-            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 4px 0 #d4ac0d;
+            transition: transform 0.05s, box-shadow 0.05s;
             margin-top: 8px;
         }
         .main-button:active, .main-button.pressed {
             transform: translateY(4px);
-            box-shadow: 0 0 0 #074b83;
-            background: #74b9ff;
+            box-shadow: 0 0 0 #d4ac0d;
+            background: #f39c12;
         }
         .upgrades-list {
             display: flex;
@@ -157,7 +157,7 @@
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-value" id="money">0</div>
-                <div class="stat-label">Детали ($)</div>
+                <div class="stat-label">Скрап ($)</div>
             </div>
             <div class="stat-box">
                 <div class="stat-value" id="rps">0</div>
@@ -169,32 +169,28 @@
     </div>
 
     <div class="panel">
-        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #a4b0be;">АПГРЕЙДЫ И ИНСТРУМЕНТЫ</div>
-        <div class="upgrades-list" id="upgradesList">
-            <!-- Скрипт заполнит сам -->
-        </div>
+        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #a4b0be;">ИНСТРУМЕНТЫ И АПГРЕЙДЫ</div>
+        <div class="upgrades-list" id="upgradesList"></div>
     </div>
 
     <div class="panel" style="padding: 10px;">
-        <div class="log-box" id="logBox">Гараж открыт. Инструменты на месте. Начнем сборку...</div>
+        <div class="log-box" id="logBox">Гараж открыт. Ключи на столе. Погнали...</div>
     </div>
 </div>
 
 <script>
-    // Состояние игры
     let state = {
         money: 0,
         clickPower: 1,
         perSec: 0,
         upgrades: [
-            { id: 'wrench', name: 'Набор ключей', cost: 15, rps: 1, count: 0 },
+            { id: 'wrench', name: 'Набор ключей ГОСТ', cost: 15, rps: 1, count: 0 },
             { id: 'compressor', name: 'Компрессор', cost: 100, rps: 6, count: 0 },
             { id: 'f80', name: 'Мотор F80', cost: 600, rps: 35, count: 0 },
             { id: 'peltier', name: 'Пельтье-кулер', cost: 2500, rps: 150, count: 0 }
         ]
     };
 
-    // DOM Элементы
     const moneyEl = document.getElementById('money');
     const rpsEl = document.getElementById('rps');
     const workBtn = document.getElementById('workBtn');
@@ -214,7 +210,7 @@
             item.innerHTML = `
                 <div class="upgrade-info">
                     <span class="upgrade-name">${upg.name} (${upg.count})</span>
-                    <span class="upgrade-cost">${upg.cost} деталей</span>
+                    <span class="upgrade-cost">${upg.cost} скрапа</span>
                 </div>
                 <button class="buy-btn" ${state.money < upg.cost ? 'disabled' : ''} onclick="buyUpgrade('${upg.id}')">Купить</button>
             `;
@@ -228,21 +224,22 @@
         renderUpgrades();
     }
 
-    // Клик по гайке (с защитой от двойного срабатывания тача)
     function doWork() {
         state.money += state.clickPower;
         updateUI();
     }
 
+    // Жесткая привязка без тупников на смартфонах
     workBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         doWork();
         workBtn.classList.add('pressed');
     }, {passive: false});
 
-    workBtn.addEventListener('touchend', () => {
+    workBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
         workBtn.classList.remove('pressed');
-    });
+    }, {passive: false});
 
     workBtn.addEventListener('mousedown', () => {
         doWork();
@@ -257,7 +254,7 @@
         const upg = state.upgrades.find(u => u.id === id);
         if (state.money >= upg.cost) {
             state.money -= upg.cost;
-            state.count++;
+            upg.count++;
             upg.cost = Math.floor(upg.cost * 1.15);
             state.perSec += upg.rps;
             log(`Куплено: ${upg.name}`);
@@ -265,7 +262,6 @@
         }
     };
 
-    // Игровой цикл (каждую секунду капает пассивный доход)
     setInterval(() => {
         if (state.perSec > 0) {
             state.money += state.perSec / 10;
@@ -277,5 +273,4 @@
 </script>
 
 </body>
-    </html>
-            
+</html>
