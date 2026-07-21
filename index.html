@@ -331,7 +331,6 @@
                 }
             }
 
-            // Исправленная и надежная логика зажатия для мобильных устройств
             function startHold(e) {
                 e.preventDefault();
                 if (currentTask && currentTask.type === 'hold' && !isHolding) {
@@ -342,9 +341,12 @@
                     let targetMs = currentTask.targetSec * 1000;
                     document.getElementById('overlayCounter').innerText = (currentTask.targetSec - holdTimeElapsed).toFixed(1) + "с";
 
-                    // Запускаем интервал обновления счетчика на экране во время зажатия
                     let intervalMs = 100;
                     holdTimerInterval = setInterval(() => {
                         if (!isHolding) return;
                         holdTimeElapsed += intervalMs / 1000;
-                        let timeLeft = currentTas
+                        let timeLeft = currentTask.targetSec - holdTimeElapsed;
+                        
+                        if (timeLeft <= 0) {
+                            clearInterval(holdTimerInterval);
+    
