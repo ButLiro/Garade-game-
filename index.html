@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Гаражный Выживач: Мировые Моторы</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -66,7 +67,7 @@
         
         <div class="bg-zinc-900/80 border border-zinc-800 p-2 rounded-2xl w-full min-h-[65px] flex flex-col items-center justify-center shadow-inner">
             <p id="actionLog" class="text-xs text-zinc-300 leading-tight">
-                Выбери правильный подход к починке этой железяки!
+                Облачное сохранение подключено. Прогресс в безопасности!
             </p>
         </div>
     </main>
@@ -88,11 +89,11 @@
         </div>
 
         <button id="projectInvestBtn" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-zinc-950 font-black text-xs rounded-xl shadow-lg">
-            Вложить скрап (Требуется: 50)
+            Вложить скрап
         </button>
     </main>
 
-    <!-- Панель управления -->
+    <!-- Панель управления (Дублируется системной кнопкой ТГ на вкладке верстака) -->
     <footer class="flex flex-col gap-2 mt-1">
         <div id="workshopControls">
             <button id="actionBtn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-zinc-950 font-black text-sm rounded-2xl shadow-xl shadow-amber-500/20">
@@ -116,11 +117,11 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            let tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : {
-                expand: function() {},
-                HapticFeedback: { impactOccurred: function(){}, notificationOccurred: function(){} }
-            };
-            try { tg.expand(); } catch(e) {}
+            let tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+            if (tg) {
+                tg.expand();
+                tg.ready();
+            }
 
             let game = {
                 scrap: 0,
@@ -128,7 +129,7 @@
                 energyCost: 15,
                 scrapMultiplier: 1,
                 projectStage: 0,
-                currentEngine: null
+                currentEngineIndex: 0
             };
 
             const worldEngines = [
@@ -151,16 +152,6 @@
                         { title: "Установка турбин Twin-Turbo", desc: "Вешаем улитку Garrett для бешеного наддува.", cost: 350 },
                         { title: "2JZ-GTE Swap завершен!", desc: "Двигатель готов сжигать резину на старте!", cost: 0 }
                     ]
-                },
-                {
-                    name: "V8 LS-swap (Американский масл-кар мотор)",
-                    icon: "🔥",
-                    stages: [
-                        { title: "Блок цилиндров V8 Small Block", desc: "Основа американской мощи.", cost: 70 },
-                        { title: "Распредвал и впускной коллектор", desc: "Добавляем агрессивного баса в выхлоп.", cost: 180 },
-                        { title: "Компрессор (Supercharger)", desc: "Выводим механический нагнетатель наружу капота.", cost: 400 },
-                        { title: "V8 Monster собран!", desc: "Рев мотора сотрясает стены гаражного кооператива!", cost: 0 }
-                    ]
                 }
             ];
 
@@ -174,10 +165,7 @@
             const itemsList = [
                 { brokenIcon: "🔧", fixedIcon: "✨", brokenTitle: "Ржавый карбюратор", fixedTitle: "Тюнингованный карбюратор", brokenDesc: "Состояние: Забит наглухо", fixedDesc: "Состояние: Ревет как зверь" },
                 { brokenIcon: "💻", fixedIcon: "🚀", brokenTitle: "Убитый процессор", fixedTitle: "Разогнанный чипсет", brokenDesc: "Состояние: Ножки погнуты", fixedDesc: "Состояние: Летит в космос" },
-                { brokenIcon: "⛽", fixedIcon: "🔥", brokenTitle: "Дырявый бензобак", fixedTitle: "Заваренный бак", brokenDesc: "Состояние: Протекает", fixedDesc: "Состояние: Герметичен" },
-                { brokenIcon: "🛞", fixedIcon: "🏎️", brokenTitle: "Лысая покрышка", fixedTitle: "Новый слик", brokenDesc: "Состояние: Корд торчит", fixedDesc: "Состояние: Держак бешеный" },
-                { brokenIcon: "🔋", fixedIcon: "⚡", brokenTitle: "Мертвый аккумулятор", fixedTitle: "Заряженный гелевый акум", brokenDesc: "Состояние: 0 вольт", fixedDesc: "Состояние: Выдает 14.8В" },
-                { brokenIcon: "⚙️", fixedIcon: "🏍️", brokenTitle: "Клинувший мотор F80", fixedTitle: "Расточенный движок", brokenDesc: "Состояние: Поршень в задирах", fixedDesc: "Состояние: Шепчет" }
+                { brokenIcon: "⛽", fixedIcon: "🔥", brokenTitle: "Дырявый бензобак", fixedTitle: "Заваренный бак", brokenDesc: "Состояние: Протекает", fixedDesc: "Состояние: Герметичен" }
             ];
 
             const outcomesList = [
@@ -193,14 +181,61 @@
             let isHolding = false;
             let holdTimerInterval = null;
             let holdTimeElapsed = 0;
+            let currentEngine = worldEngines[0];
+
+            // Загрузка из CloudStorage ТГ
+            function loadGame() {
+                if (tg && tg.CloudStorage) {
+                    tg.CloudStorage.getItem('garage_save_v1', (err, val) => {
+                        if (!err && val) {
+                            try {
+                                let saved = JSON.parse(val);
+                                game.scrap = saved.scrap || 0;
+                                game.energy = saved.energy !== undefined ? saved.energy : 100;
+                                game.energyCost = saved.energyCost || 15;
+                                game.scrapMultiplier = saved.scrapMultiplier || 1;
+                                game.projectStage = saved.projectStage || 0;
+                                game.currentEngineIndex = saved.currentEngineIndex || 0;
+                                
+                                if (saved.upgrades) {
+                                    saved.upgrades.forEach(savedUpg => {
+                                        let found = upgrades.find(u => u.id === savedUpg.id);
+                                        if (found) {
+                                            found.level = savedUpg.level;
+                                            found.cost = savedUpg.cost;
+                                        }
+                                    });
+                                }
+                                currentEngine = worldEngines[game.currentEngineIndex] || worldEngines[0];
+                            } catch(e) {}
+                        }
+                        updateHUD();
+                        renderProject();
+                    });
+                } else {
+                    updateHUD();
+                    renderProject();
+                }
+            }
+
+            // Сохранение в CloudStorage ТГ
+            function saveGame() {
+                if (tg && tg.CloudStorage) {
+                    let saveData = {
+                        scrap: game.scrap,
+                        energy: game.energy,
+                        energyCost: game.energyCost,
+                        scrapMultiplier: game.scrapMultiplier,
+                        projectStage: game.projectStage,
+                        currentEngineIndex: game.currentEngineIndex,
+                        upgrades: upgrades.map(u => ({ id: u.id, level: u.level, cost: u.cost }))
+                    };
+                    tg.CloudStorage.setItem('garage_save_v1', JSON.stringify(saveData), () => {});
+                }
+            }
 
             function getRandomItem(arr) {
                 return arr[Math.floor(Math.random() * arr.length)];
-            }
-
-            function initNewEngine() {
-                game.currentEngine = getRandomItem(worldEngines);
-                game.projectStage = 0;
             }
 
             function switchTab(tabName) {
@@ -218,10 +253,17 @@
 
                 if (tabName === 'workshop') {
                     document.getElementById('workshopControls').classList.remove('hidden');
+                    if (tg && tg.MainButton) tg.MainButton.hide();
                 }
-                if (tabName === 'shop') renderShop();
-                if (tabName === 'project') renderProject();
-                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+                if (tabName === 'shop') {
+                    renderShop();
+                    if (tg && tg.MainButton) tg.MainButton.hide();
+                }
+                if (tabName === 'project') {
+                    renderProject();
+                    if (tg && tg.MainButton) tg.MainButton.hide();
+                }
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             }
 
             function generateNewTask() {
@@ -254,6 +296,13 @@
                     document.getElementById('actionBtn').innerText = `Чинить деталь`;
                     document.getElementById('actionLog').innerHTML = `Крути гайку до упора.`;
                 }
+
+                // Интеграция с Telegram MainButton для главного действия починки
+                if (tg && tg.MainButton) {
+                    tg.MainButton.setText("ЧИНИТЬ ДЕТАЛЬ");
+                    tg.MainButton.show();
+                    tg.MainButton.onClick(handleMainAction);
+                }
             }
 
             function showOverlay(text, val) {
@@ -273,7 +322,7 @@
             function handleMainAction() {
                 if (game.energy < game.energyCost) {
                     document.getElementById('actionLog').innerHTML = `<span class='text-red-400 font-bold'>Нужно минимум ${game.energyCost} энергии!</span> Выпей чайку.`;
-                    try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                     return;
                 }
 
@@ -281,7 +330,7 @@
                     completeTaskSuccess();
                 } else if (currentTask.type === 'taps') {
                     currentTask.current--;
-                    try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
                     if (currentTask.current > 0) {
                         document.getElementById('overlayCounter').innerText = currentTask.current;
@@ -296,7 +345,7 @@
                 if (currentTask && currentTask.type === 'hold' && !isHolding) {
                     isHolding = true;
                     holdTimeElapsed = 0;
-                    try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
                     
                     let targetSec = currentTask.targetSec;
                     document.getElementById('overlayCounter').innerText = targetSec.toFixed(1) + "с";
@@ -325,7 +374,7 @@
                     clearInterval(holdTimerInterval);
                     if (holdTimeElapsed < currentTask.targetSec) {
                         document.getElementById('actionLog').innerHTML = `<span class='text-red-400 font-bold'>Рано отпустил!</span> Пайка сорвалась.`;
-                        try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
+                        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                         document.getElementById('overlayCounter').innerText = currentTask.targetSec.toFixed(1) + "с";
                     }
                 }
@@ -346,7 +395,10 @@
                 document.getElementById('actionLog').innerHTML = `<span class='text-emerald-400 font-bold'>+${earned} скрапа!</span> ${randomOutcome}`;
 
                 updateHUD();
-                try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                saveGame();
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+                if (tg && tg.MainButton) tg.MainButton.hide();
 
                 setTimeout(() => {
                     generateNewTask();
@@ -398,14 +450,14 @@
                     upg.cost = Math.floor(upg.cost * 1.6);
                     updateHUD();
                     renderShop();
-                    try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                    saveGame();
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 }
             }
 
             function renderProject() {
-                if (!game.currentEngine) initNewEngine();
-
-                let eng = game.currentEngine;
+                currentEngine = worldEngines[game.currentEngineIndex] || worldEngines[0];
+                let eng = currentEngine;
                 document.getElementById('projectIcon').innerText = eng.icon;
                 document.getElementById('projectTitle').innerText = eng.name;
 
@@ -429,7 +481,7 @@
             }
 
             document.getElementById('projectInvestBtn').onclick = () => {
-                let eng = game.currentEngine;
+                let eng = currentEngine;
                 if (game.projectStage < eng.stages.length - 1) {
                     let cost = eng.stages[game.projectStage].cost;
                     if (game.scrap >= cost) {
@@ -437,12 +489,15 @@
                         game.projectStage++;
                         updateHUD();
                         renderProject();
-                        try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                        saveGame();
+                        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                     }
                 } else {
-                    initNewEngine();
+                    game.currentEngineIndex = (game.currentEngineIndex + 1) % worldEngines.length;
+                    game.projectStage = 0;
                     renderProject();
-                    try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                    saveGame();
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 }
             };
 
@@ -451,11 +506,8 @@
             document.getElementById('tabBtn-project').onclick = () => switchTab('project');
 
             let actionBtn = document.getElementById('actionBtn');
-            
-            // Клик работает всегда
             actionBtn.onclick = handleMainAction;
             
-            // Зажатие активируем только для соответствующих заданий
             actionBtn.addEventListener('mousedown', (e) => { if(currentTask && currentTask.type === 'hold') startHold(e); });
             actionBtn.addEventListener('mouseup', (e) => { if(currentTask && currentTask.type === 'hold') endHold(e); });
             actionBtn.addEventListener('mouseleave', (e) => { if(currentTask && currentTask.type === 'hold') endHold(e); });
@@ -477,26 +529,28 @@
             document.getElementById('restoreEnergyBtn').onclick = () => {
                 game.energy = Math.min(100, game.energy + 20);
                 updateHUD();
+                saveGame();
                 document.getElementById('actionLog').innerHTML = `Выпил чайку с сушками. Энергия восстановлена! ☕`;
-                try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             };
 
             document.getElementById('rewardBtn').onclick = () => {
                 document.getElementById('rewardModal').classList.remove('hidden');
-                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             };
             document.getElementById('closeRewardBtn').onclick = () => {
                 document.getElementById('rewardModal').classList.add('hidden');
             };
 
-            initNewEngine();
+            // Запуск загрузки
+            loadGame();
             generateNewTask();
-            updateHUD();
 
             setInterval(() => {
                 if (game.energy < 100) {
                     game.energy = Math.min(100, game.energy + 1);
                     updateHUD();
+                    saveGame();
                 }
             }, 3000);
         });
