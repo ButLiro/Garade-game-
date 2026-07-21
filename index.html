@@ -3,580 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Гаражный Выживач: Мировые Моторы</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Гаражный Выживач</title>
     <style>
-        body {
-            background-color: #121214;
-            color: #e1e1e6;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        * {
+            box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            overflow: hidden;
+            -webkit-touch-callout: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121214;
+            color: #e1e1e6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
             touch-action: manipulation;
         }
-        .interactive-box {
-            will-change: transform, opacity;
-            transition: opacity 0.1s ease;
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        #actionBtn {
-            touch-action: none;
+        h1 {
+            font-size: 20px;
+            text-align: center;
+            margin: 4px 0 12px 0;
+            color: #00b894;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .panel {
+            background: #1e1e24;
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px: solid #2d2d38;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .stat-box {
+            background: #282833;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00cec9;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #a4b0be;
+            margin-top: 2px;
+        }
+        .main-button {
+            width: 100%;
+            padding: 16px;
+            background: #0984e3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #074b83;
+            transition: transform 0.1s, box-shadow 0.1s;
+            margin-top: 8px;
+        }
+        .main-button:active, .main-button.pressed {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #074b83;
+            background: #74b9ff;
+        }
+        .upgrades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #252530;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #333342;
+        }
+        .upgrade-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .upgrade-name {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .upgrade-cost {
+            font-size: 11px;
+            color: #fdcb6e;
+            margin-top: 2px;
+        }
+        .buy-btn {
+            background: #00b894;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .buy-btn:disabled {
+            background: #636e72;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .log-box {
+            background: #151518;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            height: 60px;
+            overflow-y: auto;
+            color: #dfe6e9;
+            border: 1px solid #22222b;
         }
     </style>
 </head>
-<body class="flex flex-col justify-between p-3 max-w-md mx-auto h-[100dvh]">
+<body>
 
-    <!-- Шапка: Ресурсы + Кнопка поощрения "$" -->
-    <header class="flex justify-between items-center bg-zinc-900 p-3 rounded-2xl border border-zinc-800 shadow-lg relative">
-        <div>
-            <span class="text-[10px] text-zinc-400">Скрап:</span>
-            <div id="scrapCount" class="text-xl font-black text-amber-400">0</div>
-        </div>
-        
-        <!-- Кнопка "$" в шапке -->
-        <button id="rewardBtn" class="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl flex items-center justify-center text-amber-400 font-black text-lg active:scale-95 transition shadow">
-            $
-        </button>
+<div class="container">
+    <h1>🛵 Гаражный Выживач</h1>
 
-        <div class="text-right">
-            <span class="text-[10px] text-zinc-400">Энергия:</span>
-            <div id="energyCount" class="text-xl font-black text-cyan-400">100/100</div>
-        </div>
-    </header>
-
-    <!-- Навигация по вкладкам -->
-    <nav class="grid grid-cols-3 gap-2 my-1">
-        <button id="tabBtn-workshop" class="py-2 bg-amber-500 text-zinc-950 font-bold text-xs rounded-xl transition">Верстак</button>
-        <button id="tabBtn-shop" class="py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl transition">Магазин</button>
-        <button id="tabBtn-project" class="py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl transition">Проект</button>
-    </nav>
-
-    <!-- ВКЛАДКА 1: ВЕРСТАК -->
-    <main id="tab-workshop" class="flex flex-col items-center justify-center my-auto text-center px-2">
-        <div id="itemContainer" class="relative w-32 h-32 bg-zinc-900 border-2 border-zinc-800 rounded-3xl flex items-center justify-center shadow-xl mb-2 overflow-hidden interactive-box">
-            <div id="itemIcon" class="text-5xl">🔧</div>
-            
-            <div id="actionOverlay" class="absolute inset-0 bg-black/75 flex flex-col items-center justify-center hidden">
-                <span id="overlayInstruction" class="text-[10px] text-zinc-300 font-medium px-2 text-center">Нужно:</span>
-                <span id="overlayCounter" class="text-2xl font-black text-amber-400 mt-1">3</span>
+    <div class="panel">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" id="money">0</div>
+                <div class="stat-label">Детали ($)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="rps">0</div>
+                <div class="stat-label">В секунду</div>
             </div>
         </div>
-
-        <h2 id="itemTitle" class="text-base font-bold mb-0.5 text-zinc-100">Ржавый карбюратор</h2>
-        <span id="itemStatus" class="text-[11px] px-2.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full mb-2">Состояние: Убитое</span>
         
-        <div class="bg-zinc-900/80 border border-zinc-800 p-2 rounded-2xl w-full min-h-[65px] flex flex-col items-center justify-center shadow-inner">
-            <p id="actionLog" class="text-xs text-zinc-300 leading-tight">
-                Выбери правильный подход к починке этой железяки!
-            </p>
-        </div>
-    </main>
+        <button class="main-button" id="workBtn">КРУТИТЬ ГАЙКУ</button>
+    </div>
 
-    <!-- ВКЛАДКА 2: МАГАЗИН ИНСТРУМЕНТОВ -->
-    <main id="tab-shop" class="flex flex-col my-auto gap-2 overflow-y-auto px-1 hidden max-h-[48vh]">
-        <h3 class="text-xs font-bold text-zinc-400 px-1">Апгрейды инструментов:</h3>
-        <div class="flex flex-col gap-2" id="upgradesListContainer"></div>
-    </main>
-
-    <!-- ВКЛАДКА 3: ГЛОБАЛЬНЫЙ ПРОЕКТ -->
-    <main id="tab-project" class="flex flex-col items-center justify-center my-auto text-center px-2 hidden">
-        <div class="text-4xl mb-1" id="projectIcon">⚙️</div>
-        <h2 id="projectTitle" class="text-base font-bold text-zinc-100 mb-0.5">Выбор мотора...</h2>
-        <p id="projectDesc" class="text-[11px] text-zinc-400 mb-3">Сборка легендарного агрегата из мировой истории.</p>
-        
-        <div class="w-full bg-zinc-800 rounded-full h-2.5 mb-3 overflow-hidden border border-zinc-700">
-            <div id="projectProgressBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
-        </div>
-
-        <button id="projectInvestBtn" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-zinc-950 font-black text-xs rounded-xl shadow-lg">
-            Вложить скрап (Требуется: 50)
-        </button>
-    </main>
-
-    <!-- Панель управления (Нижняя) -->
-    <footer class="flex flex-col gap-2 mt-1">
-        <div id="workshopControls">
-            <button id="actionBtn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-zinc-950 font-black text-sm rounded-2xl shadow-xl shadow-amber-500/20">
-                Чинить деталь
-            </button>
-        </div>
-        <button id="restoreEnergyBtn" class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition text-zinc-300 text-xs font-semibold rounded-xl">
-            Выпить чайку (+20 энергии) ☕
-        </button>
-    </footer>
-
-    <!-- Модальное окно случайных событий -->
-    <div id="eventModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl max-w-sm w-full text-center shadow-2xl">
-            <div class="text-4xl mb-2">🤝</div>
-            <h3 class="text-base font-bold text-amber-400 mb-1">Зашел сосед по гаражу!</h3>
-            <p id="eventText" class="text-xs text-zinc-300 mb-4">Предлагает темку...</p>
-            <div class="flex gap-2">
-                <button id="eventAcceptBtn" class="flex-1 py-2 bg-amber-500 text-zinc-950 font-bold text-xs rounded-xl">Рискнуть</button>
-                <button id="eventDeclineBtn" class="flex-1 py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl">Послать</button>
-            </div>
+    <div class="panel">
+        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #a4b0be;">АПГРЕЙДЫ И ИНСТРУМЕНТЫ</div>
+        <div class="upgrades-list" id="upgradesList">
+            <!-- Скрипт заполнит сам -->
         </div>
     </div>
 
-    <!-- Модальное окно поощрения (Кнопка "$") -->
-    <div id="rewardModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl max-w-sm w-full text-center shadow-2xl">
-            <div class="text-4xl mb-2">💰</div>
-            <h3 class="text-base font-bold text-amber-400 mb-1">Получить поощрение</h3>
-            <p class="text-xs text-zinc-300 mb-4">Напиши в Telegram барыге/админу <span class="text-cyan-400 font-bold"></span>,   и получите номер для поощерения  что бы отблагодарить его!</p>
-            <button id="closeRewardBtn" class="w-full py-2.5 bg-amber-500 text-zinc-950 font-bold text-xs rounded-xl">Понял, за работу</button>
-        </div>
+    <div class="panel" style="padding: 10px;">
+        <div class="log-box" id="logBox">Гараж открыт. Инструменты на месте. Начнем сборку...</div>
     </div>
+</div>
 
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            let tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : {
-                expand: function() {},
-                HapticFeedback: { impactOccurred: function(){}, notificationOccurred: function(){} }
-            };
-            try { tg.expand(); } catch(e) {}
+<script>
+    // Состояние игры
+    let state = {
+        money: 0,
+        clickPower: 1,
+        perSec: 0,
+        upgrades: [
+            { id: 'wrench', name: 'Набор ключей', cost: 15, rps: 1, count: 0 },
+            { id: 'compressor', name: 'Компрессор', cost: 100, rps: 6, count: 0 },
+            { id: 'f80', name: 'Мотор F80', cost: 600, rps: 35, count: 0 },
+            { id: 'peltier', name: 'Пельтье-кулер', cost: 2500, rps: 150, count: 0 }
+        ]
+    };
 
-            let game = {
-                scrap: 0,
-                energy: 100,
-                energyCost: 15,
-                scrapMultiplier: 1,
-                projectStage: 0,
-                currentEngine: null
-            };
+    // DOM Элементы
+    const moneyEl = document.getElementById('money');
+    const rpsEl = document.getElementById('rps');
+    const workBtn = document.getElementById('workBtn');
+    const upgradesListEl = document.getElementById('upgradesList');
+    const logBox = document.getElementById('logBox');
 
-            const worldEngines = [
-                {
-                    name: "Мотор Д-6 (Легендарная советская «Дырка»)",
-                    icon: "🚲",
-                    stages: [
-                        { title: "Поиск картера и цилиндра", desc: "Откапали старый советский блок в гаражах.", cost: 40 },
-                        { title: "Расточка и поршневая", desc: "Ставим новый поршень с кольцами.", cost: 100 },
-                        { title: "Зажигание и карбюратор К-34", desc: "Настраиваем искру и подачу топлива.", cost: 220 },
-                        { title: "Д-6 полностью собран и заводится с пол-пинка!", desc: "Перделку слышно на весь район!", cost: 0 }
-                    ]
-                },
-                {
-                    name: "Мотор 2JZ-GTE (Легенда JDM от Toyota Supra)",
-                    icon: "🏎️",
-                    stages: [
-                        { title: "Чугунный блок 2JZ", desc: "Нашли тяжеленный блок, способный держать 1000 сил.", cost: 60 },
-                        { title: "Кованая поршневая и ГБЦ", desc: "Усиливаем внутренности под буст.", cost: 150 },
-                        { title: "Установка турбин Twin-Turbo", desc: "Вешаем улитку Garrett для бешеного наддува.", cost: 350 },
-                        { title: "2JZ-GTE Swap завершен!", desc: "Двигатель готов сжигать резину на старте!", cost: 0 }
-                    ]
-                },
-                {
-                    name: "V8 LS-swap (Американский масл-кар мотор)",
-                    icon: "🔥",
-                    stages: [
-                        { title: "Блок цилиндров V8 Small Block", desc: "Основа американской мощи.", cost: 70 },
-                        { title: "Распредвал и впускной коллектор", desc: "Добавляем агрессивного баса в выхлоп.", cost: 180 },
-                        { title: "Компрессор (Supercharger)", desc: "Выводим механический нагнетатель наружу капота.", cost: 400 },
-                        { title: "V8 Monster собран!", desc: "Рев мотора сотрясает стены гаражного кооператива!", cost: 0 }
-                    ]
-                },
-                {
-                    name: "Роторный двигатель 13B-REW (Mazda RX-7)",
-                    icon: "🌀",
-                    stages: [
-                        { title: "Поиск секций ротора", desc: "Ищем редкий роторный движок без задиров.", cost: 50 },
-                        { title: "Замена уплотнительных апексов", desc: "Меняем изношенные уголки ротора.", cost: 130 },
-                        { title: "Настройка турбонаддува Sequential", desc: "Синхронизируем работу двух улиток.", cost: 300 },
-                        { title: "13B Rotary ожил!", desc: "Звучит как спортивный самолет на взлете!", cost: 0 }
-                    ]
-                },
-                {
-                    name: "Звезданный авиамотор М-11 (Легенда авиации)",
-                    icon: "✈️",
-                    stages: [
-                        { title: "Центральная звезда картера", desc: "Монтируем многоцилиндровую авиационную базу.", cost: 80 },
-                        { title: "Установка 5 цилиндров по кругу", desc: "Скручиваем оребренные цилиндры радиального типа.", cost: 200 },
-                        { title: "Магнето и воздушное охлаждение", desc: "Настраиваем систему зажигания винта.", cost: 450 },
-                        { title: "Авиамотор М-11 готов к полету!", desc: "Пропеллер ревет, гараж пытается взлететь!", cost: 0 }
-                    ]
-                }
-            ];
+    function log(text) {
+        logBox.innerHTML += `<br>` + text;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
 
-            let upgrades = [
-                { id: 'keys', name: "Набор ключей ГОСТ", desc: "+1 скрапа за починку", cost: 30, level: 0, type: 'scrap', val: 1 },
-                { id: 'press', name: "Гидравлический пресс", desc: "-3 к затратам энергии", cost: 60, level: 0, type: 'energy', val: 3 },
-                { id: 'station', name: "Профи-паяльник", desc: "+2 скрапа за починку", cost: 120, level: 0, type: 'scrap', val: 2 },
-                { id: 'lift', name: "Гаражный подъемник", desc: "Снижает расход энергии еще на -3", cost: 250, level: 0, type: 'energy', val: 3 }
-            ];
-
-            const itemsList = [
-                { brokenIcon: "🔧", fixedIcon: "✨", brokenTitle: "Ржавый карбюратор", fixedTitle: "Тюнингованный карбюратор", brokenDesc: "Состояние: Забит наглухо", fixedDesc: "Состояние: Ревет как зверь" },
-                { brokenIcon: "💻", fixedIcon: "🚀", brokenTitle: "Убитый процессор", fixedTitle: "Разогнанный чипсет", brokenDesc: "Состояние: Ножки погнуты", fixedDesc: "Состояние: Летит в космос" },
-                { brokenIcon: "⛽", fixedIcon: "🔥", brokenTitle: "Дырявый бензобак", fixedTitle: "Заваренный бак", brokenDesc: "Состояние: Протекает", fixedDesc: "Состояние: Герметичен" },
-                { brokenIcon: "🛞", fixedIcon: "🏎️", brokenTitle: "Лысая покрышка", fixedTitle: "Новый слик", brokenDesc: "Состояние: Корд торчит", fixedDesc: "Состояние: Держак бешеный" },
-                { brokenIcon: "🔋", fixedIcon: "⚡", brokenTitle: "Мертвый аккумулятор", fixedTitle: "Заряженный гелевый акум", brokenDesc: "Состояние: 0 вольт", fixedDesc: "Состояние: Выдает 14.8В" },
-                { brokenIcon: "⚙️", fixedIcon: "🏍️", brokenTitle: "Клинувший мотор F80", fixedTitle: "Расточенный движок", brokenDesc: "Состояние: Поршень в задирах", fixedDesc: "Состояние: Шепчет" }
-            ];
-
-            const outcomesList = [
-                "Браво, уровень гаражной концентрации зашкаливает!",
-                "Эту железяку теперь не узнает даже завод.",
-                "Пошел легкий дымок, но ты справился!",
-                "Красава! Твое устройство от такой мощи в коде скоро заискрится.",
-                "Мастер на все руки!"
-            ];
-
-            let currentItem = {};
-            let currentTask = null; 
-            let isHolding = false;
-            let holdTimeout = null;
-            let currentEventBonus = 0;
-
-            function getRandomItem(arr) {
-                return arr[Math.floor(Math.random() * arr.length)];
-            }
-
-            function initNewEngine() {
-                game.currentEngine = getRandomItem(worldEngines);
-                game.projectStage = 0;
-            }
-
-            function switchTab(tabName) {
-                document.getElementById('tab-workshop').classList.add('hidden');
-                document.getElementById('tab-shop').classList.add('hidden');
-                document.getElementById('tab-project').classList.add('hidden');
-                document.getElementById('workshopControls').classList.add('hidden');
-
-                document.getElementById('tabBtn-workshop').className = "py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl transition";
-                document.getElementById('tabBtn-shop').className = "py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl transition";
-                document.getElementById('tabBtn-project').className = "py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl transition";
-
-                document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-                document.getElementById(`tabBtn-${tabName}`).className = "py-2 bg-amber-500 text-zinc-950 font-bold text-xs rounded-xl transition";
-
-                if (tabName === 'workshop') {
-                    document.getElementById('workshopControls').classList.remove('hidden');
-                }
-                if (tabName === 'shop') {
-                    renderShop();
-                }
-                if (tabName === 'project') {
-                    renderProject();
-                }
-                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-            }
-
-            function generateNewTask() {
-                currentItem = getRandomItem(itemsList);
-                
-                document.getElementById('itemIcon').innerText = currentItem.brokenIcon;
-                document.getElementById('itemTitle').innerText = currentItem.brokenTitle;
-                document.getElementById('itemStatus').innerText = currentItem.brokenDesc;
-                document.getElementById('itemStatus').className = "text-[11px] px-2.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full mb-2";
-                document.getElementById('actionOverlay').classList.add('hidden');
-
-                let taskType = Math.random();
-
-                if (taskType < 0.4) {
-                    let targetTaps = Math.floor(Math.random() * 3) + 2;
-                    currentTask = { type: 'taps', target: targetTaps, current: targetTaps };
-                    document.getElementById('actionBtn').innerText = `Нажми быстро (${targetTaps} р.)`;
-                    document.getElementById('actionLog').innerHTML = `Нужна серия быстрых ударов! Жми кнопку.`;
-                    showOverlay("Жми тапы:", targetTaps);
-                } 
-                else if (taskType < 0.8) {
-                    let targetSec = Math.floor(Math.random() * 2) + 2;
-                    currentTask = { type: 'hold', targetSec: targetSec };
-                    document.getElementById('actionBtn').innerText = `Зажми на ${targetSec} сек.`;
-                    document.getElementById('actionLog').innerHTML = `Ювелирная пайка. Зажми кнопку!`;
-                    showOverlay("Зажми на:", targetSec + "с");
-                } 
-                else {
-                    currentTask = { type: 'single' };
-                    document.getElementById('actionBtn').innerText = `Чинить деталь`;
-                    document.getElementById('actionLog').innerHTML = `Крути гайку до упора.`;
-                    hideOverlay();
-                }
-            }
-
-            function showOverlay(text, val) {
-                let overlay = document.getElementById('actionOverlay');
-                overlay.classList.remove('hidden');
-                document.getElementById('overlayInstruction').innerText = text;
-                document.getElementById('overlayCounter').innerText = val;
-                document.getElementById('itemIcon').style.opacity = "0.4";
-            }
-
-            function hideOverlay() {
-                let overlay = document.getElementById('actionOverlay');
-                overlay.classList.add('hidden');
-                document.getElementById('itemIcon').style.opacity = "1";
-            }
-
-            function handleMainAction() {
-                if (game.energy < game.energyCost) {
-                    document.getElementById('actionLog').innerHTML = `<span class='text-red-400 font-bold'>Нужно минимум ${game.energyCost} энергии!</span> Выпей чайку.`;
-                    try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
-                    return;
-                }
-
-                if (currentTask.type === 'single') {
-                    completeTaskSuccess();
-                } else if (currentTask.type === 'taps') {
-                    currentTask.current--;
-                    try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-
-                    if (currentTask.current > 0) {
-                        document.getElementById('overlayCounter').innerText = currentTask.current;
-                        document.getElementById('actionLog').innerHTML = `Осталось тапов: ${currentTask.current}`;
-                    } else {
-                        completeTaskSuccess();
-                    }
-                }
-            }
-
-            function startHold(e) {
-                e.preventDefault();
-                if (currentTask && currentTask.type === 'hold' && !isHolding) {
-                    isHolding = true;
-                    try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
-                    
-                    let targetMs = currentTask.targetSec * 1000;
-                    document.getElementById('overlayCounter').innerText = currentTask.targetSec + "с";
-
-                    holdTimeout = setTimeout(() => {
-                        if (isHolding) {
-                            isHolding = false;
-                            completeTaskSuccess();
-                        }
-                    }, targetMs);
-                }
-            }
-
-            function endHold(e) {
-                e.preventDefault();
-                if (isHolding && currentTask.type === 'hold') {
-                    clearTimeout(holdTimeout);
-                    isHolding = false;
-                    try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
-                    document.getElementById('actionLog').innerHTML = "<span class='text-yellow-400'>Рано отпустил!</span> Пайка остыла.";
-                    document.getElementById('overlayCounter').innerText = currentTask.targetSec + "с";
-                }
-            }
-
-            function completeTaskSuccess() {
-                try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
-
-                game.energy -= game.energyCost;
-                let earnedScrap = (Math.floor(Math.random() * 4) + 3) + (game.scrapMultiplier - 1);
-                game.scrap += earnedScrap;
-
-                hideOverlay();
-                document.getElementById('itemIcon').innerText = currentItem.fixedIcon;
-                document.getElementById('itemTitle').innerText = currentItem.fixedTitle;
-                document.getElementById('itemStatus').innerText = currentItem.fixedDesc;
-                document.getElementById('itemStatus').className = "text-[11px] px-2.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full mb-2";
-
-                let randomPraise = outcomesList[Math.floor(Math.random() * outcomesList.length)];
-                document.getElementById('actionLog').innerHTML = `<span class="text-amber-300 font-bold">✨ Успех! +${earnedScrap} скрапа</span><br>${randomPraise}`;
-
-                updateUI();
-
-                let actionBtn = document.getElementById('actionBtn');
-                if (Math.random() < 0.25) {
-                    triggerRandomEvent();
-                } else {
-                    actionBtn.innerText = "Следующая железяка ➔";
-                    actionBtn.onclick = function(e) {
-                        e.preventDefault();
-                        generateNewTask();
-                        actionBtn.onclick = handleBtnClickUnified;
-                    };
-                }
-            }
-
-            function triggerRandomEvent() {
-                let events = [
-                    { text: "Сосед принес сомнительный моток медной проволоки. Рискнем забрать?", scrap: 15 },
-                    { text: "У соседа заклинил замок в гараже, поможешь вскрыть за долю малую?", scrap: 25 },
-                    { text: "Сосед нашел старый советский аккумулятор в кустах. Проверим?", scrap: 20 }
-                ];
-                let ev = getRandomItem(events);
-                currentEventBonus = ev.scrap;
-                document.getElementById('eventText').innerText = ev.text;
-                document.getElementById('eventModal').classList.remove('hidden');
-            }
-
-            window.resolveEventGlobal = function(accepted) {
-                document.getElementById('eventModal').classList.add('hidden');
-                if (accepted) {
-                    if (Math.random() > 0.3) {
-                        game.scrap += currentEventBonus;
-                        document.getElementById('actionLog').innerHTML += `<br><span class='text-green-400 font-bold'>🤝 Соседская темка стрельнула! +${currentEventBonus} скрапа</span>`;
-                    } else {
-                        let penalty = Math.min(game.scrap, 10);
-                        game.scrap -= penalty;
-                        document.getElementById('actionLog').innerHTML += `<br><span class='text-red-400 font-bold'>❌ Тема оказалась паленой! Забрали ${penalty} скрапа.</span>`;
-                    }
-                    updateUI();
-                } else {
-                    document.getElementById('actionLog').innerHTML += `<br><span class='text-zinc-400'>Ты вежливо отказался от темы с соседом.</span>`;
-                }
-
-                let actionBtn = document.getElementById('actionBtn');
-                actionBtn.innerText = "Следующая железяка ➔";
-                actionBtn.onclick = function(e) {
-                    e.preventDefault();
-                    generateNewTask();
-                    actionBtn.onclick = handleBtnClickUnified;
-                };
-            };
-
-            function renderShop() {
-                let container = document.getElementById('upgradesListContainer');
-                container.innerHTML = "";
-                upgrades.forEach((up, idx) => {
-                    let canBuy = game.scrap >= up.cost;
-                    container.innerHTML += `
-                        <div class="bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl flex justify-between items-center">
-                            <div class="text-left">
-                                <h4 class="text-xs font-bold text-zinc-200">${up.name} (Ур. ${up.level})</h4>
-                                <p class="text-[10px] text-zinc-400">${up.desc}</p>
-                                <span class="text-[11px] text-amber-400 font-bold">${up.cost} скрапа</span>
-                            </div>
-                            <button onclick="window.buyUpgradeGlobal(${idx})" class="px-3 py-1.5 ${canBuy ? 'bg-amber-500 text-zinc-950 font-bold' : 'bg-zinc-800 text-zinc-500'} text-xs rounded-xl transition">
-                                Купить
-                            </button>
-                        </div>
-                    `;
-                });
-            }
-
-            window.buyUpgradeGlobal = function(idx) {
-                let up = upgrades[idx];
-                if (game.scrap >= up.cost) {
-                    game.scrap -= up.cost;
-                    up.level++;
-                    if (up.type === 'scrap') {
-                        game.scrapMultiplier += up.val;
-                    } else if (up.type === 'energy') {
-                        game.energyCost = Math.max(5, game.energyCost - up.val);
-                    }
-                    up.cost = Math.floor(up.cost * 1.6);
-                    try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
-                    renderShop();
-                    updateUI();
-                } else {
-                    try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
-                }
-            };
-
-            function renderProject() {
-                if (!game.currentEngine) {
-                    initNewEngine();
-                }
-
-                let stages = game.currentEngine.stages;
-                document.getElementById('projectIcon').innerText = game.currentEngine.icon;
-
-                let btn = document.getElementById('projectInvestBtn');
-                if (game.projectStage >= stages.length - 1) {
-                    let st = stages[stages.length - 1];
-                    document.getElementById('projectTitle').innerText = game.currentEngine.name;
-                    document.getElementById('projectDesc').innerText = st.title + " — " + st.desc;
-                    document.getElementById('projectProgressBar').style.width = "100%";
-                    
-                    btn.innerText = "Мотор собран! Новый проект ➔";
-                    btn.onclick = function() {
-                        initNewEngine();
-                        renderProject();
-                    };
-                    return;
-                }
-
-                let currentSt = stages[game.projectStage];
-                let nextSt = stages[game.projectStage + 1];
-                
-                document.getElementById('projectTitle').innerText = game.currentEngine.name;
-                document.getElementById('projectDesc').innerText = currentSt.desc;
-                
-                let percent = (game.projectStage / (stages.length - 1)) * 100;
-                document.getElementById('projectProgressBar').style.width = percent + "%";
-                
-                btn.innerText = `Вложить скрап в этап (Нужно: ${nextSt.cost})`;
-                btn.onclick = investInProject;
-            }
-
-            function investInProject() {
-                let stages = game.currentEngine.stages;
-                let nextSt = stages[game.projectStage + 1];
-                if (game.scrap >= nextSt.cost) {
-                    game.scrap -= nextSt.cost;
-                    game.projectStage++;
-                    try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
-                    renderProject();
-                    updateUI();
-                } else {
-                    try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
-                }
-            }
-
-            function updateUI() {
-                document.getElementById('scrapCount').innerText = game.scrap;
-                document.getElementById('energyCount').innerText = game.energy + "/100";
-            }
-
-            document.getElementById('tabBtn-workshop').addEventListener('click', () => switchTab('workshop'));
-            document.getElementById('tabBtn-shop').addEventListener('click', () => switchTab('shop'));
-            document.getElementById('tabBtn-project').addEventListener('click', () => switchTab('project'));
-
-            let actionBtn = document.getElementById('actionBtn');
-
-            function handleBtnClickUnified(e) {
-                if (currentTask && currentTask.type === 'hold') return;
-                handleMainAction();
-            }
-
-            actionBtn.onclick = handleBtnClickUnified;
-            
-            // Надежная привязка Pointer Events для мгновенного отклика на телефоне
-            actionBtn.addEventListener('pointerdown', (e) => {
-                if (currentTask && currentTask.type === 'hold') {
-                    startHold(e);
-                }
-            });
-
-            actionBtn.addEventListener('pointerup', (e) => {
-                if (currentTask && currentTask.type === 'hold') {
-                    endHold(e);
-                }
-            });
-
-            actionBtn.addEventListener('pointercancel', (e) => {
-                if (currentTask && currentTask.type === 'hold') {
-                    endHold(e);
-                }
-            });
-
-            document.getElementById('restoreEnergyBtn').addEventListener('click', () => {
-                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-                game.energy = Math.min(100, game.energy + 20);
-                updateUI();
-                document.getElementById('actionLog').innerHTML = "☕ Выпил крепкого чаю! +20 энергии.";
-            });
-
-            document.getElementById('rewardBtn').addEventListener('click', () => {
-                try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
-                document.getElementById('rewardModal').classList.remove('hidden');
-            });
-
-            document.getElementById('closeRewardBtn').addEventListener('click', () => {
-                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-                document.getElementById('rewardModal').classList.add('hidden');
-            });
-
-            document.getElementById('eventAcceptBtn').addEventListener('click', () => resolveEventGlobal(true));
-            document.getElementById('eventDeclineBtn').addEventListener('click', () => resolveEventGlobal(false));
-
-            initNewEngine();
-            generateNewTask();
+    function renderUpgrades() {
+        upgradesListEl.innerHTML = '';
+        state.upgrades.forEach(upg => {
+            const item = document.createElement('div');
+            item.className = 'upgrade-item';
+            item.innerHTML = `
+                <div class="upgrade-info">
+                    <span class="upgrade-name">${upg.name} (${upg.count})</span>
+                    <span class="upgrade-cost">${upg.cost} деталей</span>
+                </div>
+                <button class="buy-btn" ${state.money < upg.cost ? 'disabled' : ''} onclick="buyUpgrade('${upg.id}')">Купить</button>
+            `;
+            upgradesListEl.appendChild(item);
         });
-    </script>
+    }
+
+    function updateUI() {
+        moneyEl.innerText = Math.floor(state.money);
+        rpsEl.innerText = state.perSec;
+        renderUpgrades();
+    }
+
+    // Клик по гайке (с защитой от двойного срабатывания тача)
+    function doWork() {
+        state.money += state.clickPower;
+        updateUI();
+    }
+
+    workBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        doWork();
+        workBtn.classList.add('pressed');
+    }, {passive: false});
+
+    workBtn.addEventListener('touchend', () => {
+        workBtn.classList.remove('pressed');
+    });
+
+    workBtn.addEventListener('mousedown', () => {
+        doWork();
+        workBtn.classList.add('pressed');
+    });
+
+    workBtn.addEventListener('mouseup', () => {
+        workBtn.classList.remove('pressed');
+    });
+
+    window.buyUpgrade = function(id) {
+        const upg = state.upgrades.find(u => u.id === id);
+        if (state.money >= upg.cost) {
+            state.money -= upg.cost;
+            state.count++;
+            upg.cost = Math.floor(upg.cost * 1.15);
+            state.perSec += upg.rps;
+            log(`Куплено: ${upg.name}`);
+            updateUI();
+        }
+    };
+
+    // Игровой цикл (каждую секунду капает пассивный доход)
+    setInterval(() => {
+        if (state.perSec > 0) {
+            state.money += state.perSec / 10;
+            updateUI();
+        }
+    }, 100);
+
+    updateUI();
+</script>
+
 </body>
-</html>
+    </html>
+            
