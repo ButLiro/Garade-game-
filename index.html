@@ -20,7 +20,7 @@
             transition: opacity 0.1s ease;
         }
         #actionBtn {
-            touch-action: none;
+            touch-action: manipulation;
         }
     </style>
 </head>
@@ -33,7 +33,6 @@
             <div id="scrapCount" class="text-xl font-black text-amber-400">0</div>
         </div>
         
-        <!-- Кнопка "$" в шапке -->
         <button id="rewardBtn" class="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl flex items-center justify-center text-amber-400 font-black text-lg active:scale-95 transition shadow">
             $
         </button>
@@ -72,13 +71,13 @@
         </div>
     </main>
 
-    <!-- ВКЛАДКА 2: МАГАЗИН ИНСТРУМЕНТОВ -->
+    <!-- ВКЛАДКА 2: МАГАЗИН -->
     <main id="tab-shop" class="flex flex-col my-auto gap-2 overflow-y-auto px-1 hidden max-h-[48vh]">
         <h3 class="text-xs font-bold text-zinc-400 px-1">Апгрейды инструментов:</h3>
         <div class="flex flex-col gap-2" id="upgradesListContainer"></div>
     </main>
 
-    <!-- ВКЛАДКА 3: ГЛОБАЛЬНЫЙ ПРОЕКТ -->
+    <!-- ВКЛАДКА 3: ПРОЕКТ -->
     <main id="tab-project" class="flex flex-col items-center justify-center my-auto text-center px-2 hidden">
         <div class="text-4xl mb-1" id="projectIcon">⚙️</div>
         <h2 id="projectTitle" class="text-base font-bold text-zinc-100 mb-0.5">Выбор мотора...</h2>
@@ -93,7 +92,7 @@
         </button>
     </main>
 
-    <!-- Панель управления (Нижняя) -->
+    <!-- Панель управления -->
     <footer class="flex flex-col gap-2 mt-1">
         <div id="workshopControls">
             <button id="actionBtn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-zinc-950 font-black text-sm rounded-2xl shadow-xl shadow-amber-500/20">
@@ -105,20 +104,7 @@
         </button>
     </footer>
 
-    <!-- Модальное окно случайных событий -->
-    <div id="eventModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl max-w-sm w-full text-center shadow-2xl">
-            <div class="text-4xl mb-2">🤝</div>
-            <h3 class="text-base font-bold text-amber-400 mb-1">Зашел сосед по гаражу!</h3>
-            <p id="eventText" class="text-xs text-zinc-300 mb-4">Предлагает темку...</p>
-            <div class="flex gap-2">
-                <button id="eventAcceptBtn" class="flex-1 py-2 bg-amber-500 text-zinc-950 font-bold text-xs rounded-xl">Рискнуть</button>
-                <button id="eventDeclineBtn" class="flex-1 py-2 bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl">Послать</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно поощрения (Кнопка "$") -->
+    <!-- Модалка поощрения -->
     <div id="rewardModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl max-w-sm w-full text-center shadow-2xl">
             <div class="text-4xl mb-2">💰</div>
@@ -174,26 +160,6 @@
                         { title: "Распредвал и впускной коллектор", desc: "Добавляем агрессивного баса в выхлоп.", cost: 180 },
                         { title: "Компрессор (Supercharger)", desc: "Выводим механический нагнетатель наружу капота.", cost: 400 },
                         { title: "V8 Monster собран!", desc: "Рев мотора сотрясает стены гаражного кооператива!", cost: 0 }
-                    ]
-                },
-                {
-                    name: "Роторный двигатель 13B-REW (Mazda RX-7)",
-                    icon: "🌀",
-                    stages: [
-                        { title: "Поиск секций ротора", desc: "Ищем редкий роторный движок без задиров.", cost: 50 },
-                        { title: "Замена уплотнительных апексов", desc: "Меняем изношенные уголки ротора.", cost: 130 },
-                        { title: "Настройка турбонаддува Sequential", desc: "Синхронизируем работу двух улиток.", cost: 300 },
-                        { title: "13B Rotary ожил!", desc: "Звучит как спортивный самолет на взлете!", cost: 0 }
-                    ]
-                },
-                {
-                    name: "Звездный авиамотор М-11 (Легенда авиации)",
-                    icon: "✈️",
-                    stages: [
-                        { title: "Центральная звезда картера", desc: "Монтируем многоцилиндровую авиационную базу.", cost: 80 },
-                        { title: "Установка 5 цилиндров по кругу", desc: "Скручиваем оребренные цилиндры радиального типа.", cost: 200 },
-                        { title: "Магнето и воздушное охлаждение", desc: "Настраиваем систему зажигания винта.", cost: 450 },
-                        { title: "Авиамотор М-11 готов к полету!", desc: "Пропеллер ревет, гараж пытается взлететь!", cost: 0 }
                     ]
                 }
             ];
@@ -253,12 +219,8 @@
                 if (tabName === 'workshop') {
                     document.getElementById('workshopControls').classList.remove('hidden');
                 }
-                if (tabName === 'shop') {
-                    renderShop();
-                }
-                if (tabName === 'project') {
-                    renderProject();
-                }
+                if (tabName === 'shop') renderShop();
+                if (tabName === 'project') renderProject();
                 try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
             }
 
@@ -269,7 +231,7 @@
                 document.getElementById('itemTitle').innerText = currentItem.brokenTitle;
                 document.getElementById('itemStatus').innerText = currentItem.brokenDesc;
                 document.getElementById('itemStatus').className = "text-[11px] px-2.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full mb-2";
-                document.getElementById('actionOverlay').classList.add('hidden');
+                hideOverlay();
 
                 let taskType = Math.random();
 
@@ -285,13 +247,12 @@
                     currentTask = { type: 'hold', targetSec: targetSec };
                     document.getElementById('actionBtn').innerText = `Зажми на ${targetSec} сек.`;
                     document.getElementById('actionLog').innerHTML = `Ювелирная пайка. Зажми кнопку!`;
-                    showOverlay("Зажми на:", targetSec + "с");
+                    showOverlay("Осталось:", targetSec.toFixed(1) + "с");
                 } 
                 else {
                     currentTask = { type: 'single' };
                     document.getElementById('actionBtn').innerText = `Чинить деталь`;
                     document.getElementById('actionLog').innerHTML = `Крути гайку до упора.`;
-                    hideOverlay();
                 }
             }
 
@@ -332,21 +293,213 @@
             }
 
             function startHold(e) {
-                e.preventDefault();
                 if (currentTask && currentTask.type === 'hold' && !isHolding) {
                     isHolding = true;
                     holdTimeElapsed = 0;
                     try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
                     
-                    let targetMs = currentTask.targetSec * 1000;
-                    document.getElementById('overlayCounter').innerText = (currentTask.targetSec - holdTimeElapsed).toFixed(1) + "с";
+                    let targetSec = currentTask.targetSec;
+                    document.getElementById('overlayCounter').innerText = targetSec.toFixed(1) + "с";
 
-                    let intervalMs = 100;
+                    let intervalMs = 50;
                     holdTimerInterval = setInterval(() => {
                         if (!isHolding) return;
                         holdTimeElapsed += intervalMs / 1000;
-                        let timeLeft = currentTask.targetSec - holdTimeElapsed;
+                        let timeLeft = targetSec - holdTimeElapsed;
                         
                         if (timeLeft <= 0) {
                             clearInterval(holdTimerInterval);
-    
+                            isHolding = false;
+                            document.getElementById('overlayCounter').innerText = "0.0с";
+                            completeTaskSuccess();
+                        } else {
+                            document.getElementById('overlayCounter').innerText = timeLeft.toFixed(1) + "с";
+                        }
+                    }, intervalMs);
+                }
+            }
+
+            function endHold(e) {
+                if (isHolding && currentTask.type === 'hold') {
+                    isHolding = false;
+                    clearInterval(holdTimerInterval);
+                    if (holdTimeElapsed < currentTask.targetSec) {
+                        document.getElementById('actionLog').innerHTML = `<span class='text-red-400 font-bold'>Рано отпустил!</span> Пайка сорвалась.`;
+                        try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
+                        document.getElementById('overlayCounter').innerText = currentTask.targetSec.toFixed(1) + "с";
+                    }
+                }
+            }
+
+            function completeTaskSuccess() {
+                game.energy -= game.energyCost;
+                let earned = game.scrapMultiplier;
+                game.scrap += earned;
+
+                document.getElementById('itemIcon').innerText = currentItem.fixedIcon;
+                document.getElementById('itemTitle').innerText = currentItem.fixedTitle;
+                document.getElementById('itemStatus').innerText = currentItem.fixedDesc;
+                document.getElementById('itemStatus').className = "text-[11px] px-2.5 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full mb-2";
+                hideOverlay();
+
+                let randomOutcome = getRandomItem(outcomesList);
+                document.getElementById('actionLog').innerHTML = `<span class='text-emerald-400 font-bold'>+${earned} скрапа!</span> ${randomOutcome}`;
+
+                updateHUD();
+                try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+
+                setTimeout(() => {
+                    generateNewTask();
+                }, 1200);
+            }
+
+            function updateHUD() {
+                document.getElementById('scrapCount').innerText = game.scrap;
+                document.getElementById('energyCount').innerText = `${game.energy}/100`;
+            }
+
+            function renderShop() {
+                let container = document.getElementById('upgradesListContainer');
+                container.innerHTML = '';
+
+                upgrades.forEach(upg => {
+                    let isMax = upg.level >= 5;
+                    let itemDiv = document.createElement('div');
+                    itemDiv.className = "bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl flex items-center justify-between";
+                    itemDiv.innerHTML = `
+                        <div class="text-left">
+                            <div class="text-xs font-bold text-zinc-100">${upg.name} (ур. ${upg.level})</div>
+                            <div class="text-[10px] text-zinc-400">${upg.desc}</div>
+                        </div>
+                        <button class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-bold text-xs rounded-xl transition" ${isMax || game.scrap < upg.cost ? 'disabled' : ''} data-id="${upg.id}">
+                            ${isMax ? 'МАКС' : upg.cost + ' 🪙'}
+                        </button>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+
+                container.querySelectorAll('button:not([disabled])').forEach(btn => {
+                    btn.onclick = (e) => {
+                        let id = e.target.getAttribute('data-id');
+                        buyUpgrade(id);
+                    };
+                });
+            }
+
+            function buyUpgrade(id) {
+                let upg = upgrades.find(u => u.id === id);
+                if (game.scrap >= upg.cost && upg.level < 5) {
+                    game.scrap -= upg.cost;
+                    upg.level++;
+                    
+                    if (upg.type === 'scrap') game.scrapMultiplier += upg.val;
+                    else if (upg.type === 'energy') game.energyCost = Math.max(5, game.energyCost - upg.val);
+
+                    upg.cost = Math.floor(upg.cost * 1.6);
+                    updateHUD();
+                    renderShop();
+                    try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                }
+            }
+
+            function renderProject() {
+                if (!game.currentEngine) initNewEngine();
+
+                let eng = game.currentEngine;
+                document.getElementById('projectIcon').innerText = eng.icon;
+                document.getElementById('projectTitle').innerText = eng.name;
+
+                let stageData = eng.stages[game.projectStage];
+                let progressPercent = (game.projectStage / (eng.stages.length - 1)) * 100;
+                document.getElementById('projectProgressBar').style.width = `${progressPercent}%`;
+
+                let investBtn = document.getElementById('projectInvestBtn');
+
+                if (game.projectStage < eng.stages.length - 1) {
+                    document.getElementById('projectDesc').innerHTML = `<b class="text-amber-400">${stageData.title}</b><br>${stageData.desc}`;
+                    investBtn.innerText = `Вложить скрап (Требуется: ${stageData.cost})`;
+                    investBtn.disabled = game.scrap < stageData.cost;
+                    investBtn.className = "w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 active:scale-95 transition text-zinc-950 font-black text-xs rounded-xl shadow-lg";
+                } else {
+                    document.getElementById('projectDesc').innerHTML = `<b class="text-emerald-400">${stageData.title}</b><br>${stageData.desc}`;
+                    investBtn.innerText = `Собрать новый мотор!`;
+                    investBtn.disabled = false;
+                    investBtn.className = "w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95 transition text-zinc-950 font-black text-xs rounded-xl shadow-lg";
+                }
+            }
+
+            document.getElementById('projectInvestBtn').onclick = () => {
+                let eng = game.currentEngine;
+                if (game.projectStage < eng.stages.length - 1) {
+                    let cost = eng.stages[game.projectStage].cost;
+                    if (game.scrap >= cost) {
+                        game.scrap -= cost;
+                        game.projectStage++;
+                        updateHUD();
+                        renderProject();
+                        try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                    }
+                } else {
+                    initNewEngine();
+                    renderProject();
+                    try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+                }
+            };
+
+            document.getElementById('tabBtn-workshop').onclick = () => switchTab('workshop');
+            document.getElementById('tabBtn-shop').onclick = () => switchTab('shop');
+            document.getElementById('tabBtn-project').onclick = () => switchTab('project');
+
+            let actionBtn = document.getElementById('actionBtn');
+            
+            // Клик работает всегда
+            actionBtn.onclick = handleMainAction;
+            
+            // Зажатие активируем только для соответствующих заданий
+            actionBtn.addEventListener('mousedown', (e) => { if(currentTask && currentTask.type === 'hold') startHold(e); });
+            actionBtn.addEventListener('mouseup', (e) => { if(currentTask && currentTask.type === 'hold') endHold(e); });
+            actionBtn.addEventListener('mouseleave', (e) => { if(currentTask && currentTask.type === 'hold') endHold(e); });
+            
+            actionBtn.addEventListener('touchstart', (e) => { 
+                if(currentTask && currentTask.type === 'hold') {
+                    e.preventDefault();
+                    startHold(e); 
+                }
+            }, {passive: false});
+            
+            actionBtn.addEventListener('touchend', (e) => { 
+                if(currentTask && currentTask.type === 'hold') {
+                    e.preventDefault();
+                    endHold(e); 
+                }
+            }, {passive: false});
+
+            document.getElementById('restoreEnergyBtn').onclick = () => {
+                game.energy = Math.min(100, game.energy + 20);
+                updateHUD();
+                document.getElementById('actionLog').innerHTML = `Выпил чайку с сушками. Энергия восстановлена! ☕`;
+                try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
+            };
+
+            document.getElementById('rewardBtn').onclick = () => {
+                document.getElementById('rewardModal').classList.remove('hidden');
+                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+            };
+            document.getElementById('closeRewardBtn').onclick = () => {
+                document.getElementById('rewardModal').classList.add('hidden');
+            };
+
+            initNewEngine();
+            generateNewTask();
+            updateHUD();
+
+            setInterval(() => {
+                if (game.energy < 100) {
+                    game.energy = Math.min(100, game.energy + 1);
+                    updateHUD();
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
