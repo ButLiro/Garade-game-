@@ -93,7 +93,7 @@
         </button>
     </main>
 
-    <!-- Панель управления (Дублируется системной кнопкой ТГ на вкладке верстака) -->
+    <!-- Панель управления -->
     <footer class="flex flex-col gap-2 mt-1">
         <div id="workshopControls">
             <button id="actionBtn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-zinc-950 font-black text-sm rounded-2xl shadow-xl shadow-amber-500/20">
@@ -183,55 +183,73 @@
             let holdTimeElapsed = 0;
             let currentEngine = worldEngines[0];
 
-            // Загрузка из CloudStorage ТГ
+            // Загрузка (с fallback на обычный localStorage для браузера)
             function loadGame() {
+                let loaded = false;
                 if (tg && tg.CloudStorage) {
                     tg.CloudStorage.getItem('garage_save_v1', (err, val) => {
                         if (!err && val) {
                             try {
-                                let saved = JSON.parse(val);
-                                game.scrap = saved.scrap || 0;
-                                game.energy = saved.energy !== undefined ? saved.energy : 100;
-                                game.energyCost = saved.energyCost || 15;
-                                game.scrapMultiplier = saved.scrapMultiplier || 1;
-                                game.projectStage = saved.projectStage || 0;
-                                game.currentEngineIndex = saved.currentEngineIndex || 0;
-                                
-                                if (saved.upgrades) {
-                                    saved.upgrades.forEach(savedUpg => {
-                                        let found = upgrades.find(u => u.id === savedUpg.id);
-                                        if (found) {
-                                            found.level = savedUpg.level;
-                                            found.cost = savedUpg.cost;
-                                        }
-                                    });
-                                }
-                                currentEngine = worldEngines[game.currentEngineIndex] || worldEngines[0];
+                                parseSaveData(val);
+                                loaded = true;
                             } catch(e) {}
                         }
-                        updateHUD();
-                        renderProject();
+                        finalizeLoad();
                     });
-                } else {
-                    updateHUD();
-                    renderProject();
+                } 
+                
+                if (!loaded) {
+                    let localVal = localStorage.getItem('garage_save_v1');
+                    if (localVal) {
+                        try { parseSaveData(localVal); } catch(e) {}
+                    }
+                    finalizeLoad();
                 }
             }
 
-            // Сохранение в CloudStorage ТГ
-            function saveGame() {
-                if (tg && tg.CloudStorage) {
-                    let saveData = {
-                        scrap: game.scrap,
-                        energy: game.energy,
-                        energyCost: game.energyCost,
-                        scrapMultiplier: game.scrapMultiplier,
-                        projectStage: game.projectStage,
-                        currentEngineIndex: game.currentEngineIndex,
-                        upgrades: upgrades.map(u => ({ id: u.id, level: u.level, cost: u.cost }))
-                    };
-                    tg.CloudStorage.setItem('garage_save_v1', JSON.stringify(saveData), () => {});
+            function parseSaveData(val) {
+                let saved = JSON.parse(val);
+                game.scrap = saved.scrap || 0;
+                game.energy = saved.energy !== undefined ? saved.energy : 100;
+                game.energyCost = saved.energyCost || 15;
+                game.scrapMultiplier = saved.scrapMultiplier || 1;
+                game.projectStage = saved.projectStage || 0;
+                game.currentEngineIndex = saved.currentEngineIndex || 0;
+                
+                if (saved.upgrades) {
+                    saved.upgrades.forEach(savedUpg => {
+                        let found = upgrades.find(u => u.id === savedUpg.id);
+                        if (found) {
+                            found.level = savedUpg.level;
+                            found.cost = savedUpg.cost;
+                        }
+                    });
                 }
+                currentEngine = worldEngines[game.currentEngineIndex] || worldEngines[0];
+            }
+
+            function finalizeLoad() {
+                updateHUD();
+                renderProject();
+                generateNewTask();
+            }
+
+            // Сохранение (в Telegram Cloud и в браузерный localStorage)
+            function saveGame() {
+                let saveData = JSON.stringify({
+                    scrap: game.scrap,
+                    energy: game.energy,
+                    energyCost: game.energyCost,
+                    scrapMultiplier: game.scrapMultiplier,
+                    projectStage: game.projectStage,
+                    currentEngineIndex: game.currentEngineIndex,
+                    upgrades: upgrades.map(u => ({ id: u.id, level: u.level, cost: u.cost }))
+                });
+
+                if (tg && tg.CloudStorage) {
+                    tg.CloudStorage.setItem('garage_save_v1', saveData, () => {});
+                }
+                localStorage.setItem('garage_save_v1', saveData);
             }
 
             function getRandomItem(arr) {
@@ -297,7 +315,6 @@
                     document.getElementById('actionLog').innerHTML = `Крути гайку до упора.`;
                 }
 
-                // Интеграция с Telegram MainButton для главного действия починки
                 if (tg && tg.MainButton) {
                     tg.MainButton.setText("ЧИНИТЬ ДЕТАЛЬ");
                     tg.MainButton.show();
@@ -542,10 +559,10 @@
                 document.getElementById('rewardModal').classList.add('hidden');
             };
 
-            // Запуск загрузки
+            // Запускаем инициализацию и загрузку
             loadGame();
-            generateNewTask();
 
+            // Авторегенерация энергии со временем
             setInterval(() => {
                 if (game.energy < 100) {
                     game.energy = Math.min(100, game.energy + 1);
